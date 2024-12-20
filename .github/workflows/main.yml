@@ -1,50 +1,21 @@
-name: SonarQube Analysis
+name: Build
 
 on:
   push:
     branches:
-      - main  # Change to your main branch
-  pull_request:
-    branches:
       - main
 
+
 jobs:
-  sonarQubeAnalysis:
-    runs-on: ubuntu-latest
-
+  build:
+    name: Build and analyze
+    runs-on: windows-latest
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
         with:
-          python-version: '3.x'  # Replace with your Python version (e.g., 3.10)
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt  # Ensure your project has a requirements.txt file
-
-      - name: Cache SonarQube Scanner
-        uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-
-      - name: Install SonarQube Scanner
-        run: |
-          curl -sL https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip -o sonar-scanner.zip
-          unzip sonar-scanner.zip -d $HOME
-          export PATH="$HOME/sonar-scanner-4.7.0.2747-linux/bin:$PATH"
-
-      - name: Run SonarQube Scanner
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: sonarsource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner \
-            -Dsonar.projectsqp_f420250e8b0ba08f490c0f33fa9a06e1649e5039 \
-            -Dsonar.sources=. \
-            -Dsonar.language=py \
-            -Dsonar.host.url=http://localhost:9000/
-            -Dsonar.login=$squ_7dbd0edb159e31451a6e066a74c6d09aedde8b2e
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
